@@ -1,0 +1,3 @@
+[submodule "simple-event-emitter"]
+	path = simple-event-emitter
+	url = https://github.com/JoakimCh/simple-event-emitter
