@@ -99,6 +99,11 @@ export class RPCBridge extends EventEmitter {
     this.#send(packet)
   }
 
+  /** Emits an event on the local side. */
+  localEmit(event, ...args) {
+    super.emit(event, ...args)
+  }
+
   /** Get a proxy object which will return a function to execute `call` for you on any method you access. But not on `then()` since it has a special meaning. */
   proxy() {
     const self = this

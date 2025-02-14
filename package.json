@@ -2,7 +2,7 @@
   "name": "rpc-bridge",
   "main": "./rpc-bridge.js",
   "type": "module",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "RPC module for JavaScript.",
   "license": "MIT",
   "repository": {
