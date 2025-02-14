@@ -28,8 +28,21 @@ export class RPCBridge extends EventEmitter {
   throwAwaitingResultsOnClose = true
   /** Setup a function handling the data to send. */
   onSend
-  /** Set to true when a connection is ready. A `handleClose` call will set this to false. If false then no more data will be sent and calls to `call` or `emit` will throw. */
-  isOpen = false
+  /** Set to true when a connection is ready and false when it isn't. If false then no more data will be sent and calls to `call` or `emit` will throw. */
+  #isOpen = false
+
+  get isOpen() {return this.#isOpen}
+  set isOpen(open) {
+    if (this.#isOpen && !open) {
+      super.emit('close')
+      if (this.throwAwaitingResultsOnClose) {
+        this.rejectResults(`The connection closed before any incoming result.`)
+      }
+    } else if (!this.#isOpen && open) {
+      super.emit('open')
+    }
+    this.#isOpen = open
+  }
   
   /** By default it's using `JSON.stringify` as the `serializer`. A serializer must either return a string or binary data. It can also be async. So if you want a more capable serializer (e.g. one using an efficient binary protocol) you're free to replace it. */
   constructor({serializer = JSON.stringify, deserializer = JSON.parse} = {}) {
@@ -46,17 +59,9 @@ export class RPCBridge extends EventEmitter {
     }
     this.#awaitingResult.clear()
   }
-
-  /** Manually trigger the "on connection closed" handler. */
-  handleClose = () => {
-    this.isOpen = false
-    if (this.throwAwaitingResultsOnClose) {
-      this.rejectResults(`The connection closed before any incoming result.`)
-    }
-  }
   
   async #send(packet) {
-    if (!this.isOpen) return
+    if (!this.#isOpen) return
     const serialized = await this.serializer(packet)
     return this.onSend(serialized)
     // this.#connection?.send(serialized)
@@ -83,7 +88,7 @@ export class RPCBridge extends EventEmitter {
   
   /** Calls the remote function linked to `cmd`. */
   call(cmd, ...args) {
-    if (!this.isOpen) throw Error('RPC connection not open.')
+    if (!this.#isOpen) throw Error('RPC connection not open.')
     const id = this.#callId ++
     const packet = {id, cmd, args}
     this.#send(packet)
@@ -94,7 +99,7 @@ export class RPCBridge extends EventEmitter {
 
   /** Emits an event on the other side. */
   emit(event, ...args) {
-    if (!this.isOpen) throw Error('RPC connection not open.')
+    if (!this.#isOpen) throw Error('RPC connection not open.')
     const packet = {event, args}
     this.#send(packet)
   }
