@@ -20,18 +20,17 @@ export class RPCBridge extends EventEmitter {
   serializer
   /** The deserializer used. */
   deserializer
-  #callId = 1
   /** Bind commands to functions here (it's ok to replace this `Map` with a new one at any time). */
   functionMap = new Map()
-  #awaitingResult = new Map()
   /** Should calls still waiting for results throw an error if the connection is closed? */
   throwAwaitingResultsOnClose = true
   /** Setup a function handling the data to send. */
   onSend
-  /** Set to true when a connection is ready and false when it isn't. If false then no more data will be sent and calls to `call` or `emit` will throw. */
-  #isOpen = false
+  
+  #callId = 1; #isOpen = false; #awaitingResult = new Map()
 
   get isOpen() {return this.#isOpen}
+  /** Set to true when a connection is ready and false when it isn't. If false then no more data will be sent and calls to `call` or `emit` will throw. */
   set isOpen(open) {
     if (this.#isOpen && !open) {
       super.emit('close')
@@ -67,16 +66,16 @@ export class RPCBridge extends EventEmitter {
     // this.#connection?.send(serialized)
   }
   
-  /** You can either set the `functionMap` directly or this function to register them. */
-  registerFunction(cmd, func) {
+  /** Register a function which can be called. */
+  bind(cmd, func) {
     if (typeof func != 'function') {
       throw Error(`Expected a function.`)
     }
     this.functionMap.set(cmd, func)
   }
 
-  /** Register all functions of a class instance. */
-  registerInstanceFunctions(instance) {
+  /** Register all instance methods as functions which can be called. */
+  bindInstance(instance) {
     const proto = Object.getPrototypeOf(instance)
     for (const key of Object.getOwnPropertyNames(proto)) {
       if (key == 'constructor') continue
@@ -84,6 +83,16 @@ export class RPCBridge extends EventEmitter {
         this.functionMap.set(key, instance[key].bind(instance))
       }
     }
+  }
+
+  /** @deprecated see bind */
+  registerFunction(cmd, func) {
+    return this.bind(cmd, func)
+  }
+
+  /** @deprecated see bindInstance */
+  registerInstanceFunctions(instance) {
+    return this.bindInstance(instance)
   }
   
   /** Calls the remote function linked to `cmd`. */
