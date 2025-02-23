@@ -34,14 +34,15 @@ export class RPCBridge extends EventEmitter {
   /** Set to true when a connection is ready and false when it isn't. If false then no more data will be sent and calls to `call` or `emit` will throw. */
   set isOpen(open) {
     if (this.#isOpen && !open) {
+      this.#isOpen = open
       super.emit('close')
       if (this.throwAwaitingResultsOnClose) {
         this.rejectResults(`The connection closed before any incoming result.`)
       }
     } else if (!this.#isOpen && open) {
+      this.#isOpen = open
       super.emit('open')
     }
-    this.#isOpen = open
   }
   
   /** By default it's using `JSON.stringify` as the `serializer`. A serializer must either return a string or binary data. It can also be async. So if you want a more capable serializer (e.g. one using an efficient binary protocol) you're free to replace it. */
