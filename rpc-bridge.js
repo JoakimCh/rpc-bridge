@@ -173,6 +173,9 @@ export class RPCBridge extends EventEmitter {
       }
       throw `Unknown packet type.`
     } catch (error) {
+      if (error?.code == 'NO_ERROR_LISTENER') {
+        throw error // e.g. on incoming protocolError
+      }
       this.#send({protocolError: {
         message: `Invalid packet caused an error: `+error,
         returnToSender: packet
