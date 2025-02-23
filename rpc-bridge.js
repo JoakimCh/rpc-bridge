@@ -62,7 +62,7 @@ export class RPCBridge extends EventEmitter {
   
   async #send(packet) {
     if (!this.#isOpen) return
-    RPCBridge.debug?.(packet)
+    RPCBridge.debug?.('>', packet)
     const serialized = await this.serializer(packet)
     return this.onSend(serialized)
   }
@@ -154,7 +154,7 @@ export class RPCBridge extends EventEmitter {
       } catch (error) {
         throw `Receiver failed to deserialize: `+error
       }
-      RPCBridge.debug?.(packet)
+      RPCBridge.debug?.('<', packet)
       if (typeof packet != 'object') {
         throw `Packet not deserialized to an object.`
       }
