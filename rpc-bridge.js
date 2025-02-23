@@ -120,7 +120,7 @@ export class RPCBridge extends EventEmitter {
 
   /** Calls the local function linked to `cmd`. */
   localCall(cmd, ...args) {
-    const func = this.functionMap(cmd)
+    const func = this.functionMap.get(cmd)
     if (!func) throw Error(`No function bound to: ${cmd}`)
     func(...args)
   }
