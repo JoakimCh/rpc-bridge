@@ -66,7 +66,7 @@ export class RPCBridge extends EventEmitter {
     // this.#connection?.send(serialized)
   }
   
-  /** Register a function which can be called. */
+  /** Bind a function to a callable command. */
   bind(cmd, func) {
     if (typeof func != 'function') {
       throw Error(`Expected a function.`)
@@ -74,7 +74,12 @@ export class RPCBridge extends EventEmitter {
     this.functionMap.set(cmd, func)
   }
 
-  /** Register all instance methods as functions which can be called. */
+  /** Unbind a function from command (if any) */
+  unbind(cmd) {
+    return this.functionMap.delete(cmd)
+  }
+
+  /** Bind all instance methods as functions which can be called. */
   bindInstance(instance) {
     const proto = Object.getPrototypeOf(instance)
     for (const key of Object.getOwnPropertyNames(proto)) {
