@@ -16,6 +16,7 @@ Packet structure:
 
 /** Implement RPC over any IO connection by correctly using: `isClosed`, `onSend`, `handlePacket` and `handleClose`. */
 export class RPCBridge extends EventEmitter {
+  static debug
   /** The serializer used. */
   serializer
   /** The deserializer used. */
@@ -61,9 +62,9 @@ export class RPCBridge extends EventEmitter {
   
   async #send(packet) {
     if (!this.#isOpen) return
+    RPCBridge.debug?.(packet)
     const serialized = await this.serializer(packet)
     return this.onSend(serialized)
-    // this.#connection?.send(serialized)
   }
   
   /** Bind a function to a callable command. */
@@ -153,6 +154,7 @@ export class RPCBridge extends EventEmitter {
       } catch (error) {
         throw `Receiver failed to deserialize: `+error
       }
+      RPCBridge.debug?.(packet)
       if (typeof packet != 'object') {
         throw `Packet not deserialized to an object.`
       }
